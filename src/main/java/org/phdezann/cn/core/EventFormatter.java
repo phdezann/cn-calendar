@@ -1,5 +1,6 @@
 package org.phdezann.cn.core;
 
+import static java.lang.Boolean.TRUE;
 import static org.phdezann.cn.core.WorkflowyFormatter.bold;
 import static org.phdezann.cn.core.WorkflowyFormatter.colored;
 
@@ -12,6 +13,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.phdezann.cn.core.Config.ConfigKey;
 import org.phdezann.cn.core.WorkflowyFormatter.COLOR;
 
 import com.google.api.services.calendar.model.Event;
@@ -20,7 +22,10 @@ import com.google.api.services.calendar.model.EventDateTime;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class EventFormatter {
+
+    private final Config config;
 
     @RequiredArgsConstructor
     @Getter
@@ -54,7 +59,13 @@ public class EventFormatter {
         var hostname = "#" + getHostname();
         var dayInfo = getDayInfo(dayStart, dayEnd);
 
-        return String.format("%s | %s %s", colored(summary, COLOR.GRAY), colored(dayInfo, COLOR.SKY), hostname);
+        var title = String.format("%s | %s", colored(summary, COLOR.GRAY), colored(dayInfo, COLOR.SKY));
+
+        if (config.get(ConfigKey.DISABLE_HOSTNAME_IN_TITLE).equalsIgnoreCase("true")) {
+            title += " " + hostname;
+        }
+
+        return title;
     }
 
     private String getDayInfo(String dayStart, Optional<String> dayEnd) {

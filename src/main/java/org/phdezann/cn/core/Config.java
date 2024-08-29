@@ -22,6 +22,7 @@ public class Config {
         CALENDAR_WEBHOOK,
         CALENDAR_WEBHOOK_TOKEN,
         CALENDAR_TITLES,
+        DISABLE_HOSTNAME_IN_TITLE,
         NODE_HTTP_SERVER_PORT,
         WORKFLOWY_USERNAME, // for nodejs
         WORKFLOWY_PASSWORD, // for nodejs

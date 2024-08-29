@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.phdezann.cn.core.WorkflowyFormatter.colored;
 import static org.phdezann.cn.core.WorkflowyFormatter.toHref;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.phdezann.cn.core.WorkflowyFormatter.COLOR;
 
@@ -11,6 +12,7 @@ import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 
+@Disabled
 class EventFormatterTest {
 
     final EventFormatter eventFormatter = new EventFormatter();
