@@ -10,7 +10,7 @@ class LinkParserTest {
 
     @Test
     void extractWorkflowyLink() {
-        var createdLink = linkParser.buildLink("1667de14-9d20-44ac-836d-c11d6723cc87");
+        var createdLink = linkParser.buildLink("c11d6723cc87");
         var extractedLink = linkParser.extractWorkflowyLink("ABC" + createdLink + "DEF");
 
         assertThat(extractedLink).hasValueSatisfying(value -> //

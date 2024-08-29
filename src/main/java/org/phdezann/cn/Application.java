@@ -1,6 +1,7 @@
 package org.phdezann.cn;
 
 import org.phdezann.cn.core.AppArgs;
+import org.phdezann.cn.core.BulletMemCache;
 import org.phdezann.cn.core.ChannelCache;
 import org.phdezann.cn.core.ChannelLog;
 import org.phdezann.cn.core.ConfigReader;
@@ -37,13 +38,14 @@ public class Application {
         var channelLog = new ChannelLog(appArgs, jsonDeserializer);
         var pushNotificationRenewer = new PushNotificationRenewer(config, googleCalendarClient, channelCache,
                 channelLog);
-        var eventFormatter = new EventFormatter();
+        var eventFormatter = new EventFormatter(config);
         var workflowyUpdater = new WorkflowyClient(appArgs, config, jsonDeserializer);
         var linkParser = new LinkParser();
+        var bulletMemCache = new BulletMemCache();
         var descriptionUpdater = new DescriptionUpdater(linkParser);
         var eventCreator = //
                 new EventCreator(googleCalendarClient, channelCache, eventFormatter, workflowyUpdater, linkParser,
-                        descriptionUpdater);
+                        bulletMemCache, descriptionUpdater);
         var terminationLock = new TerminationLock();
         var mqttSubscriber = new MqttSubscriber(terminationLock, jsonDeserializer, config, eventCreator);
         var nodeForker = new NodeServerForker(config, terminationLock);

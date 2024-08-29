@@ -1,7 +1,5 @@
 package org.phdezann.cn.core;
 
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
-
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -34,13 +32,7 @@ public class LinkParser {
     }
 
     public String buildLink(String bulletId) {
-        return "[workflowy:" + extractLastPartOfUUID(bulletId) + "]";
+        return String.format("[workflowy:%s]", bulletId);
     }
 
-    private String extractLastPartOfUUID(String bulletId) {
-        if (!StringUtils.contains(bulletId, "-")) {
-            return bulletId;
-        }
-        return substringAfterLast(bulletId, "-");
-    }
 }

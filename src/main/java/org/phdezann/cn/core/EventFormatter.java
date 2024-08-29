@@ -1,6 +1,5 @@
 package org.phdezann.cn.core;
 
-import static java.lang.Boolean.TRUE;
 import static org.phdezann.cn.core.WorkflowyFormatter.bold;
 import static org.phdezann.cn.core.WorkflowyFormatter.colored;
 
@@ -56,23 +55,21 @@ public class EventFormatter {
 
         var dayStart = getDay(start);
         var dayEnd = isSameDay(start, end) ? Optional.<String> empty() : Optional.of(getDay(end));
-        var hostname = "#" + getHostname();
         var dayInfo = getDayInfo(dayStart, dayEnd);
 
         var title = String.format("%s | %s", colored(summary, COLOR.GRAY), colored(dayInfo, COLOR.SKY));
 
-        if (config.get(ConfigKey.DISABLE_HOSTNAME_IN_TITLE).equalsIgnoreCase("true")) {
-            title += " " + hostname;
+        if (config.isTrue(ConfigKey.ENABLE_HOSTNAME_IN_TITLE)) {
+            title += " #" + getHostname();
         }
 
         return title;
     }
 
     private String getDayInfo(String dayStart, Optional<String> dayEnd) {
-        if (dayEnd.isEmpty()) {
-            return dayStart;
-        }
-        return String.format("%s au %s", dayStart, dayEnd.get());
+        return dayEnd //
+                .map(str -> String.format("%s au %s", dayStart, str)) //
+                .orElse(dayStart);
     }
 
     private String buildNote(Event event) {

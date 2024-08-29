@@ -1,5 +1,6 @@
 package org.phdezann.cn.core;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
@@ -21,19 +22,21 @@ public class Config {
         MQTT_TOPIC,
         CALENDAR_WEBHOOK,
         CALENDAR_WEBHOOK_TOKEN,
-        CALENDAR_TITLES,
-        DISABLE_HOSTNAME_IN_TITLE,
+        CALENDAR_TITLES, ENABLE_HOSTNAME_IN_TITLE,
         NODE_HTTP_SERVER_PORT,
         WORKFLOWY_USERNAME, // for nodejs
         WORKFLOWY_PASSWORD, // for nodejs
-        WORKFLOWY_NEW_ITEM_PARENT_ID, // for nodejs
-        NEW_TAG, // for nodejs
-        UPDATE_TAG // for nodejs
+        WORKFLOWY_NEW_ITEM_PARENT_ID // for nodejs
     }
 
-    private Map<ConfigKey, String> entries;
+    private Map<ConfigKey, String> entries = new HashMap<>();
 
     public String get(ConfigKey key) {
         return entries.get(key);
     }
+
+    public boolean isTrue(ConfigKey key) {
+        return "true".equalsIgnoreCase(entries.get(key));
+    }
+
 }

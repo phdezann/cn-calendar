@@ -1,5 +1,7 @@
 package org.phdezann.cn.core;
 
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -7,9 +9,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.phdezann.cn.core.Config.ConfigKey;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +28,7 @@ public class WorkflowyClient {
     private final JsonSerializer jsonSerializer;
 
     @NoArgsConstructor
+    @AllArgsConstructor
     @Getter
     @Setter
     @ToString
@@ -39,7 +44,9 @@ public class WorkflowyClient {
     public UpdateResult updateBullet(String name, String note, String itemId) {
         var url = buildUrl(name, note, itemId);
         var json = getContent(url);
-        return jsonSerializer.readValue(json, UpdateResult.class);
+        var result = jsonSerializer.readValue(json, UpdateResult.class);
+        result = new UpdateResult(extractLastPartOfUUID(result.getId()), result.getResult());
+        return result;
     }
 
     private String buildUrl(String name, String note, String itemId) {
@@ -66,5 +73,12 @@ public class WorkflowyClient {
         } catch (URISyntaxException | IOException | InterruptedException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    private String extractLastPartOfUUID(String bulletId) {
+        if (!StringUtils.contains(bulletId, "-")) {
+            return bulletId;
+        }
+        return substringAfterLast(bulletId, "-");
     }
 }

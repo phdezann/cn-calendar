@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.phdezann.cn.core.EventFormatter.WorkflowyBullet;
 import org.phdezann.cn.core.LinkParser.WorkflowyLink;
-import org.phdezann.cn.core.WorkflowyClient.UpdateResult;
 
 import com.google.api.services.calendar.model.Event;
 
@@ -33,6 +32,7 @@ public class EventCreator {
     private final EventFormatter eventFormatter;
     private final WorkflowyClient workflowyClient;
     private final LinkParser linkParser;
+    private final BulletMemCache bulletMemCache;
     private final DescriptionUpdater descriptionUpdater;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -73,12 +73,8 @@ public class EventCreator {
         var workflowyLink = linkParser.extractWorkflowyLink(description);
         var bulletIdInDesc = workflowyLink.map(WorkflowyLink::getBulletId);
         var workflowyBullet = formatWorkflowyBullet(event);
-        var currentBulletId = createOrUpdateBullet(event, workflowyBullet, bulletIdInDesc).getId();
-        var result = workflowyClient.updateBullet(workflowyBullet.getTitle(), //
-                workflowyBullet.getNote(), //
-                currentBulletId);
-
-        var updatedDescription = descriptionUpdater.update(description, result.getId(), workflowyLink);
+        var bulletId = createOrUpdateBullet(event, workflowyBullet, bulletIdInDesc);
+        var updatedDescription = descriptionUpdater.update(description, bulletId, workflowyLink);
         if (!StringUtils.equals(updatedDescription, description)) {
             googleCalendar.updateDescription(calendarId, event.getId(), updatedDescription);
             log.info("Updated description for event#{}", event.getId());
@@ -93,18 +89,28 @@ public class EventCreator {
         };
     }
 
-    private UpdateResult createOrUpdateBullet(Event event, WorkflowyBullet workflowyBullet,
-            Optional<String> bulletIdInDesc) {
+    private String createOrUpdateBullet(Event event, WorkflowyBullet workflowyBullet, Optional<String> bulletIdInDesc) {
         var title = workflowyBullet.getTitle();
         var note = workflowyBullet.getNote();
 
         if (bulletIdInDesc.isEmpty() || isNewlyCreatedEvent(event)) {
-            System.out.println("Create bullet");
-            return workflowyClient.createBullet(title, note);
+            var bullet = workflowyClient.createBullet(title, note);
+            bulletMemCache.put(bullet.getId(), title, note);
+            return bullet.getId();
         } else {
-            System.out.println("Update bullet");
-            return workflowyClient.updateBullet(title, note, bulletIdInDesc.orElseThrow());
+            var bulletId = bulletIdInDesc.orElseThrow();
+            if (titleOrNoteHasChanged(bulletId, title, note)) {
+                workflowyClient.updateBullet(title, note, bulletId);
+            }
+            return bulletId;
         }
+    }
+
+    private boolean titleOrNoteHasChanged(String bulletId, String title, String note) {
+        return bulletMemCache.get(bulletId) //
+                .stream() //
+                .noneMatch(cachedValue -> StringUtils.equals(cachedValue.getTitle(), title) //
+                        && StringUtils.equals(cachedValue.getNote(), note));
     }
 
     private boolean isNewlyCreatedEvent(Event event) {
