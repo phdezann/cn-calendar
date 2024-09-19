@@ -2,11 +2,13 @@ package org.phdezann.cn.core;
 
 import static org.phdezann.cn.core.DateTimeConverter.toZonedDateTime;
 
+import java.io.File;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -14,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.phdezann.cn.core.EventFormatter.WorkflowyBullet;
 import org.phdezann.cn.core.LinkParser.WorkflowyLink;
+import org.phdezann.cn.support.FileUtils;
 
 import com.google.api.services.calendar.model.Event;
 
@@ -27,6 +30,7 @@ public class EventCreator {
     private static final String CONFIRMED_STATUS = "confirmed";
     private static final String CANCELLED_STATUS = "cancelled";
 
+    private final AppArgs appArgs;
     private final GoogleCalendar googleCalendar;
     private final ChannelCache channelCache;
     private final EventFormatter eventFormatter;
@@ -34,6 +38,7 @@ public class EventCreator {
     private final LinkParser linkParser;
     private final BulletMemCache bulletMemCache;
     private final DescriptionUpdater descriptionUpdater;
+    private final JsonSerializer jsonSerializer;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public synchronized void onNotification(String channelId) {
@@ -68,7 +73,7 @@ public class EventCreator {
         }
 
         log.info("Event#{} '{}' '{}' to be synced", event.getId(), event.getSummary(), event.getStatus());
-
+        dumpEvent(event);
         var description = event.getDescription();
         var workflowyLink = linkParser.extractWorkflowyLink(description);
         var bulletIdInDesc = workflowyLink.map(WorkflowyLink::getBulletId);
@@ -79,6 +84,18 @@ public class EventCreator {
             googleCalendar.updateDescription(calendarId, event.getId(), updatedDescription);
             log.info("Updated description for event#{}", event.getId());
         }
+    }
+
+    private void dumpEvent(Event event) {
+        var eventDir = appArgs.getEventDir();
+        if (eventDir == null) {
+            return;
+        }
+        FileUtils.forceMkdir(eventDir);
+        var json = jsonSerializer.writeValue(event);
+        var output = new File(eventDir, UUID.randomUUID().toString());
+        FileUtils.write(output, json);
+        log.info("Dumped Event#{} to '{}'", event, output);
     }
 
     private WorkflowyBullet formatWorkflowyBullet(Event event) {

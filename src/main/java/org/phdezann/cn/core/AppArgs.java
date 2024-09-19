@@ -25,6 +25,9 @@ public class AppArgs {
     @Parameter(names = "--token-folder", required = true)
     private File tokenFolder;
 
+    @Parameter(names = "--event-dir")
+    private File eventDir;
+
     @Parameter(names = "--console")
     private boolean console;
 

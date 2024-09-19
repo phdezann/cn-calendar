@@ -28,4 +28,5 @@ java -jar "${jar}" \
   --credentials-json-file "${CREDENTIALS_JSON_FILE}" \
   --token-folder "${TOKEN_FOLDER}" \
   --cache-dir "${CACHE_DIR}" \
+  --event-dir "${EVENT_DIR}" \
   "$@"

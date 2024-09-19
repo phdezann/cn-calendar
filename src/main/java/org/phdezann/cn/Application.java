@@ -44,8 +44,8 @@ public class Application {
         var bulletMemCache = new BulletMemCache();
         var descriptionUpdater = new DescriptionUpdater(linkParser);
         var eventCreator = //
-                new EventCreator(googleCalendarClient, channelCache, eventFormatter, workflowyUpdater, linkParser,
-                        bulletMemCache, descriptionUpdater);
+                new EventCreator(appArgs, googleCalendarClient, channelCache, eventFormatter, workflowyUpdater, linkParser,
+                        bulletMemCache, descriptionUpdater, jsonDeserializer);
         var terminationLock = new TerminationLock();
         var mqttSubscriber = new MqttSubscriber(terminationLock, jsonDeserializer, config, eventCreator);
         var nodeForker = new NodeServerForker(config, terminationLock);
