@@ -26,7 +26,7 @@ jar=$(find_jar)
 java -jar "${jar}" \
   --config-file "${CONFIG_FILE}" \
   --credentials-json-file "${CREDENTIALS_JSON_FILE}" \
-  --token-folder "${TOKEN_FOLDER}" \
+  --token-dir "${TOKEN_DIR}" \
   --cache-dir "${CACHE_DIR}" \
   --event-dir "${EVENT_DIR}" \
   "$@"

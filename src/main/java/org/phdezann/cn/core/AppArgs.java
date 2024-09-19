@@ -22,17 +22,11 @@ public class AppArgs {
     @Parameter(names = "--credentials-json-file", required = true)
     private File credentialsJsonFile;
 
-    @Parameter(names = "--token-folder", required = true)
-    private File tokenFolder;
+    @Parameter(names = "--token-dir", required = true)
+    private File tokenDir;
 
     @Parameter(names = "--event-dir")
     private File eventDir;
-
-    @Parameter(names = "--console")
-    private boolean console;
-
-    @Parameter(names = "--trace")
-    private boolean trace;
 
     @Parameter(names = "--init-tokens")
     private boolean initTokens;

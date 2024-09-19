@@ -80,7 +80,7 @@ public class EventCreator {
         var workflowyBullet = formatWorkflowyBullet(event);
         var bulletId = createOrUpdateBullet(event, workflowyBullet, bulletIdInDesc);
         var updatedDescription = descriptionUpdater.update(description, bulletId, workflowyLink);
-        if (!StringUtils.equals(updatedDescription, description)) {
+        if (!event.getStatus().equals(CANCELLED_STATUS) && !StringUtils.equals(updatedDescription, description)) {
             googleCalendar.updateDescription(calendarId, event.getId(), updatedDescription);
             log.info("Updated description for event#{}", event.getId());
         }
@@ -95,7 +95,7 @@ public class EventCreator {
         var json = jsonSerializer.writeValue(event);
         var output = new File(eventDir, UUID.randomUUID().toString());
         FileUtils.write(output, json);
-        log.info("Dumped Event#{} to '{}'", event, output);
+        log.info("Dumped Event#{} to '{}'", event.getId(), output);
     }
 
     private WorkflowyBullet formatWorkflowyBullet(Event event) {

@@ -42,7 +42,7 @@ public class GoogleClient {
 
             GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow //
                     .Builder(newTrustedTransport(), gsonFactory, clientSecrets, scopes()) //
-                    .setDataStoreFactory(new FileDataStoreFactory(appArgs.getTokenFolder())) //
+                    .setDataStoreFactory(new FileDataStoreFactory(appArgs.getTokenDir())) //
                     .setAccessType("offline") //
                     .build();
 
@@ -64,7 +64,7 @@ public class GoogleClient {
     }
 
     public void renewTokens() {
-        FileUtils.deleteQuietly(appArgs.getTokenFolder());
+        FileUtils.deleteQuietly(appArgs.getTokenDir());
         new GoogleClient(appArgs).getCredentials();
 
         var secrets = loadSecrets().getInstalled();
