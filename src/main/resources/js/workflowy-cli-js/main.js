@@ -92,17 +92,22 @@ let workflowy;
 const app = express()
 
 app.get('/update', (req, res) => {
-    const completeConfig = read_config(req.query.configFile)
+    const configFileParam = req.query.configFile;
+    const itemIdParam = req.query.itemId;
+    const nameParam = req.query.name;
+    const noteParam = req.query.note;
+
+    const completeConfig = read_config(configFileParam)
     const options = {
-        name: req.query.name, //
-        note: req.query.note, //
+        name: nameParam, //
+        note: noteParam, //
         config: {
             newItemParentId: completeConfig.WORKFLOWY_NEW_ITEM_PARENT_ID,
             workflowyUsername: completeConfig.WORKFLOWY_USERNAME,
             workflowyPassword: completeConfig.WORKFLOWY_PASSWORD
 
         },
-        itemId: req.query.itemId
+        itemId: itemIdParam
     }
     res.setHeader('Content-Type', 'application/json');
     if (!workflowy) {

@@ -6,7 +6,6 @@ import static org.phdezann.cn.core.WorkflowyFormatter.colored;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Optional;
@@ -14,9 +13,8 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.phdezann.cn.core.Config.ConfigKey;
 import org.phdezann.cn.core.WorkflowyFormatter.COLOR;
-
-import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventDateTime;
+import org.phdezann.cn.core.model.Event;
+import org.phdezann.cn.core.model.EventDateOrTime;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -49,12 +47,13 @@ public class EventFormatter {
     }
 
     private String buildTitle(Event event) {
-        var summary = event.getSummary();
+        var summary = event.getSummary().orElse("(vide)");
         var start = event.getStart();
         var end = event.getEnd();
 
-        var dayStart = getDay(start);
-        var dayEnd = isSameDay(start, end) ? Optional.<String> empty() : Optional.of(getDay(end));
+        var dayStart = getDay(event.hasDates(), start);
+        var dayEnd = isSameDay(event.hasDates(), start, end) ? //
+                Optional.<LocalDate> empty() : Optional.of(getDay(event.hasDates(), end));
         var dayInfo = getDayInfo(dayStart, dayEnd);
 
         var title = String.format("%s | %s", colored(summary, COLOR.GRAY), colored(dayInfo, COLOR.SKY));
@@ -66,56 +65,53 @@ public class EventFormatter {
         return title;
     }
 
-    private String getDayInfo(String dayStart, Optional<String> dayEnd) {
+    private String getDayInfo(LocalDate dayStart, Optional<LocalDate> dayEnd) {
         return dayEnd //
-                .map(str -> String.format("%s au %s", dayStart, str)) //
-                .orElse(dayStart);
+                .map(str -> String.format("%s au %s", formatDate(dayStart), formatDate(str))) //
+                .orElse(formatDate(dayStart));
     }
 
     private String buildNote(Event event) {
-        var start = event.getStart();
-        var end = event.getEnd();
         var htmlLink = String.format("<a href=\"%s\">Lien</a>", event.getHtmlLink());
         var prefixLength = NotePrefixLengthFinder.findPrefixLength(event.getSummary());
         var prefix = StringUtils.repeat(" ", prefixLength);
-        if (isDateOnly(start) && isDateOnly(end)) {
+        if (event.hasDates()) {
             return String.format("%s%s", prefix, htmlLink);
         } else {
-            var time = toZonedDateTime(start).format(DateTimeFormatter.ofPattern("HH:mm"));
+            var time = event.getStart().getTime().format(DateTimeFormatter.ofPattern("HH:mm"));
             return String.format("%s%s | %s", prefix, colored(time, COLOR.SKY), htmlLink);
         }
     }
 
-    private String getDay(EventDateTime eventDateTime) {
+    private LocalDate getDay(boolean dateOnly, EventDateOrTime eventDateTime) {
+        return dateOnly ? dateToLocalDate(eventDateTime) : timeToLocalDate(eventDateTime);
+    }
+
+    private String formatDate(LocalDate date) {
         var pattern = DateTimeFormatter.ofPattern("d LLLL yyyy", Locale.FRENCH);
-        return toLocalDate(eventDateTime).format(pattern);
+        return date.format(pattern);
     }
 
-    private boolean isDateOnly(EventDateTime eventDateTime) {
-        return eventDateTime.getDate() != null && eventDateTime.getDateTime() == null;
-    }
-
-    private boolean isSameDay(EventDateTime eventStart, EventDateTime eventEnd) {
-        if (isDateOnly(eventStart) && isDateOnly(eventEnd)) {
-            return toLocalDate(eventStart).plusDays(1).equals(toLocalDate(eventEnd));
+    private boolean isSameDay(boolean dateOnly, EventDateOrTime eventStart, EventDateOrTime eventEnd) {
+        if (dateOnly) {
+            return dateToLocalDate(eventStart).equals(dateToLocalDate(eventEnd));
         } else {
-            return toZonedDateTime(eventStart).toLocalDate().equals(toZonedDateTime(eventEnd).toLocalDate());
+            return timeToLocalDate(eventStart).equals(timeToLocalDate(eventEnd));
         }
     }
 
-    private LocalDate toLocalDate(EventDateTime eventDateTime) {
-        if (isDateOnly(eventDateTime)) {
-            return DateTimeConverter.toLocalDate(eventDateTime.getDate());
-        } else {
-            return DateTimeConverter.toZonedDateTime(eventDateTime.getDateTime()).toLocalDate();
+    private LocalDate dateToLocalDate(EventDateOrTime eventDateTime) {
+        if (eventDateTime.getDate() == null) {
+            throw new NullPointerException();
         }
+        return eventDateTime.getDate();
     }
 
-    private ZonedDateTime toZonedDateTime(EventDateTime eventDateTime) {
-        if (isDateOnly(eventDateTime)) {
-            throw new RuntimeException("Must be a datetime");
+    private LocalDate timeToLocalDate(EventDateOrTime eventDateTime) {
+        if (eventDateTime.getTime() == null) {
+            throw new NullPointerException();
         }
-        return DateTimeConverter.toZonedDateTime(eventDateTime.getDateTime());
+        return eventDateTime.getTime().toLocalDate();
     }
 
     private String getHostname() {

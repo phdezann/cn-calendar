@@ -1,7 +1,7 @@
 package org.phdezann.cn;
 
 import org.phdezann.cn.core.AppArgs;
-import org.phdezann.cn.core.BulletMemCache;
+import org.phdezann.cn.core.BulletCache;
 import org.phdezann.cn.core.ChannelCache;
 import org.phdezann.cn.core.ChannelLog;
 import org.phdezann.cn.core.ConfigReader;
@@ -17,6 +17,9 @@ import org.phdezann.cn.core.PushNotificationRenewer;
 import org.phdezann.cn.core.SyncTokenCache;
 import org.phdezann.cn.core.TerminationLock;
 import org.phdezann.cn.core.WorkflowyClient;
+import org.phdezann.cn.core.converter.EventConverter;
+import org.phdezann.cn.core.converter.EventDateTimeConverter;
+import org.phdezann.cn.core.converter.EventStatusEnumConverter;
 import org.phdezann.cn.core.mqtt.MqttSubscriber;
 
 import com.beust.jcommander.JCommander;
@@ -35,17 +38,20 @@ public class Application {
         var syncTokenCache = new SyncTokenCache(appArgs, jsonDeserializer);
         var googleCalendarClient = new GoogleCalendar(config, googleClient, syncTokenCache);
         var channelCache = new ChannelCache(appArgs, jsonDeserializer);
+        var bulletCache = new BulletCache(appArgs, jsonDeserializer);
         var channelLog = new ChannelLog(appArgs, jsonDeserializer);
         var pushNotificationRenewer = new PushNotificationRenewer(config, googleCalendarClient, channelCache,
                 channelLog);
         var eventFormatter = new EventFormatter(config);
         var workflowyUpdater = new WorkflowyClient(appArgs, config, jsonDeserializer);
         var linkParser = new LinkParser();
-        var bulletMemCache = new BulletMemCache();
         var descriptionUpdater = new DescriptionUpdater(linkParser);
-        var eventCreator = //
-                new EventCreator(appArgs, googleCalendarClient, channelCache, eventFormatter, workflowyUpdater, linkParser,
-                        bulletMemCache, descriptionUpdater, jsonDeserializer);
+        var eventStatusEnumConverter = new EventStatusEnumConverter();
+        var eventDateTimeConverter = new EventDateTimeConverter();
+        var eventConverter = new EventConverter(eventStatusEnumConverter, eventDateTimeConverter);
+        var eventCreator = new EventCreator(appArgs, googleCalendarClient, channelCache, eventStatusEnumConverter,
+                eventConverter, eventFormatter, workflowyUpdater, linkParser, bulletCache, descriptionUpdater,
+                jsonDeserializer);
         var terminationLock = new TerminationLock();
         var mqttSubscriber = new MqttSubscriber(terminationLock, jsonDeserializer, config, eventCreator);
         var nodeForker = new NodeServerForker(config, terminationLock);

@@ -4,7 +4,7 @@
 set -e -u
 
 host="fly"
-service_name="cn-calendar"
+service_name="gcalendar-to-workflowy"
 
 echo "Restarting service..."
 ssh "${host}" "sudo systemctl restart ${service_name}"

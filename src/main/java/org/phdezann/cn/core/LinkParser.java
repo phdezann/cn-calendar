@@ -3,8 +3,6 @@ package org.phdezann.cn.core;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -19,12 +17,12 @@ public class LinkParser {
         private final String bulletId;
     }
 
-    public Optional<WorkflowyLink> extractWorkflowyLink(String text) {
-        if (StringUtils.isEmpty(text)) {
+    public Optional<WorkflowyLink> extractWorkflowyLink(Optional<String> description) {
+        if (description.isEmpty()) {
             return Optional.empty();
         }
         var pattern = Pattern.compile("(\\[workflowy:(\\S*)])");
-        var matcher = pattern.matcher(text);
+        var matcher = pattern.matcher(description.orElseThrow());
         if (!matcher.find()) {
             return Optional.empty();
         }

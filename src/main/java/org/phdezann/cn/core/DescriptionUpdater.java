@@ -1,11 +1,11 @@
 package org.phdezann.cn.core;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.remove;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.util.Optional;
 
-import org.apache.commons.lang3.StringUtils;
 import org.phdezann.cn.core.LinkParser.WorkflowyLink;
 
 import lombok.RequiredArgsConstructor;
@@ -15,12 +15,15 @@ public class DescriptionUpdater {
 
     private final LinkParser linkParser;
 
-    public String update(String description, String bulletId, Optional<WorkflowyLink> link) {
-        if (link.isPresent()) {
-            description = StringUtils.remove(description, link.get().getWholeLink());
-        }
-        description = trimToEmpty(description);
+    public String update(Optional<String> descriptionOpt, String bulletId, Optional<WorkflowyLink> link) {
+        var description = trimToEmpty(extractRawDescription(descriptionOpt, link));
         var separator = isEmpty(description) ? "" : "\n";
-        return trimToEmpty(description) + separator + linkParser.buildLink(bulletId);
+        return description + separator + linkParser.buildLink(bulletId);
+    }
+
+    private String extractRawDescription(Optional<String> descriptionOpt, Optional<WorkflowyLink> linkOpt) {
+        return descriptionOpt //
+                .map(description -> linkOpt.map(link -> remove(description, link.getWholeLink())).orElse(description))
+                .orElse("");
     }
 }
