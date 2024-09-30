@@ -119,6 +119,40 @@ class EventFormatterTest {
                         + toHref("https://www.google.com/calendar/event?eid=Mzlk", "Lien"));
     }
 
+    @Test
+    void escape_html_entities_in_summary() {
+        var event = build(Optional.of("My event &"), //
+                "2024-04-15", //
+                "2024-04-15", //
+                "https://www.google.com/calendar/event?eid=Mzlk");
+
+        var bullet = eventFormatter.formatConfirmed(event);
+
+        assertThat(bullet.getTitle()) //
+                .startsWith("" //
+                            + colored("My event &amp;", COLOR.GRAY) //
+                            + " | " //
+                            + colored("15 avril 2024", COLOR.SKY));
+    }
+
+    @Test
+    void trim_summary() {
+        var event = build(Optional.of("  My event "), //
+                "2024-04-15", //
+                "2024-04-15", //
+                "https://www.google.com/calendar/event?eid=Mzlk");
+
+        var bullet = eventFormatter.formatConfirmed(event);
+
+        assertThat(bullet.getTitle()) //
+                .startsWith("" //
+                            + colored("My event", COLOR.GRAY) //
+                            + " | " //
+                            + colored("15 avril 2024", COLOR.SKY));
+    }
+
+
+
     private Event build(Optional<String> summary, String start_str, String end_str, String htmlLink) {
         return Event.builder() //
                 .summary(summary) //

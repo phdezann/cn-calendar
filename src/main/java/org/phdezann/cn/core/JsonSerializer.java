@@ -17,6 +17,7 @@ public class JsonSerializer {
         this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.mapper.registerModule(new JavaTimeModule());
         this.mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        this.mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         this.mapper.setDateFormat(new StdDateFormat().withColonInTimeZone(true));
     }
 

@@ -47,7 +47,7 @@ public class EventFormatter {
     }
 
     private String buildTitle(Event event) {
-        var summary = event.getSummary().orElse("(vide)");
+        var summary = event.getSummary().map(StringUtils::trimToEmpty).orElse("(vide)");
         var start = event.getStart();
         var end = event.getEnd();
 
@@ -56,7 +56,7 @@ public class EventFormatter {
                 Optional.<LocalDate> empty() : Optional.of(getDay(event.hasDates(), end));
         var dayInfo = getDayInfo(dayStart, dayEnd);
 
-        var title = String.format("%s | %s", colored(summary, COLOR.GRAY), colored(dayInfo, COLOR.SKY));
+        var title = String.format("%s | %s", colored(escape(summary), COLOR.GRAY), colored(dayInfo, COLOR.SKY));
 
         if (config.isTrue(ConfigKey.ENABLE_HOSTNAME_IN_TITLE)) {
             title += " #" + getHostname();
@@ -120,6 +120,13 @@ public class EventFormatter {
         } catch (UnknownHostException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    private String escape(String text) {
+        text = StringUtils.replace(text, "&", "&amp;");
+        text = StringUtils.replace(text, ">", "&gt;");
+        text = StringUtils.replace(text, "<", "&lt;");
+        return text;
     }
 
 }

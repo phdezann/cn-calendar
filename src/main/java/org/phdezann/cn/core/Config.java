@@ -23,10 +23,7 @@ public class Config {
         CALENDAR_WEBHOOK,
         CALENDAR_WEBHOOK_TOKEN,
         CALENDAR_TITLES, ENABLE_HOSTNAME_IN_TITLE,
-        NODE_HTTP_SERVER_PORT,
-        WORKFLOWY_USERNAME, // for nodejs
-        WORKFLOWY_PASSWORD, // for nodejs
-        WORKFLOWY_NEW_ITEM_PARENT_ID // for nodejs
+        WORKFLOWY_SHARE_SECRET_LINK,
     }
 
     private Map<ConfigKey, String> entries = new HashMap<>();

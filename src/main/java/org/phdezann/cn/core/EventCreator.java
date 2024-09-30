@@ -36,7 +36,7 @@ public class EventCreator {
     private final EventStatusEnumConverter eventStatusEnumConverter;
     private final EventConverter eventConverter;
     private final EventFormatter eventFormatter;
-    private final WorkflowyClient workflowyClient;
+    private final org.phdezann.cn.wf.core.WorkflowyClient workflowyClient;
     private final LinkParser linkParser;
     private final BulletCache bulletCache;
     private final DescriptionUpdater descriptionUpdater;
@@ -120,7 +120,7 @@ public class EventCreator {
         var note = workflowyBullet.getNote();
 
         if (bulletIdInDesc.isEmpty() || isNewlyCreatedEvent(event)) {
-            var bulletId = workflowyClient.createBullet(title, note).getId();
+            var bulletId = workflowyClient.createNode(title, note).getNodeShortId();
             log.debug("Bullet#{} created", bulletId);
             return bulletId;
         } else {
@@ -128,7 +128,7 @@ public class EventCreator {
             if (!titleOrNoteHasChanged(previousBulletId, title, note)) {
                 return previousBulletId;
             }
-            var bulletId = workflowyClient.updateBullet(title, note, previousBulletId).getId();
+            var bulletId = workflowyClient.editNode(previousBulletId, title, note).getNodeShortId();
             if (StringUtils.equals(previousBulletId, bulletId)) {
                 log.debug("Bullet#{} updated", bulletId);
             } else {

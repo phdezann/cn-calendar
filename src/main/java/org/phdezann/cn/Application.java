@@ -12,15 +12,17 @@ import org.phdezann.cn.core.GoogleCalendar;
 import org.phdezann.cn.core.GoogleClient;
 import org.phdezann.cn.core.JsonSerializer;
 import org.phdezann.cn.core.LinkParser;
-import org.phdezann.cn.core.NodeServerForker;
 import org.phdezann.cn.core.PushNotificationRenewer;
 import org.phdezann.cn.core.SyncTokenCache;
 import org.phdezann.cn.core.TerminationLock;
-import org.phdezann.cn.core.WorkflowyClient;
 import org.phdezann.cn.core.converter.EventConverter;
 import org.phdezann.cn.core.converter.EventDateTimeConverter;
 import org.phdezann.cn.core.converter.EventStatusEnumConverter;
 import org.phdezann.cn.core.mqtt.MqttSubscriber;
+import org.phdezann.cn.wf.core.HttpClient;
+import org.phdezann.cn.wf.core.RequestProxy;
+import org.phdezann.cn.wf.core.request.CreatePushPollOperationBuilder;
+import org.phdezann.cn.wf.core.request.EditPushPollOperationBuilder;
 
 import com.beust.jcommander.JCommander;
 
@@ -43,18 +45,22 @@ public class Application {
         var pushNotificationRenewer = new PushNotificationRenewer(config, googleCalendarClient, channelCache,
                 channelLog);
         var eventFormatter = new EventFormatter(config);
-        var workflowyUpdater = new WorkflowyClient(appArgs, config, jsonDeserializer);
         var linkParser = new LinkParser();
         var descriptionUpdater = new DescriptionUpdater(linkParser);
         var eventStatusEnumConverter = new EventStatusEnumConverter();
         var eventDateTimeConverter = new EventDateTimeConverter();
         var eventConverter = new EventConverter(eventStatusEnumConverter, eventDateTimeConverter);
+        var httpClient = new HttpClient();
+
+        var createPushPollDataBuilder = new CreatePushPollOperationBuilder(jsonDeserializer);
+        var editPushPollDataBuilder = new EditPushPollOperationBuilder();
+        var requestProxy = new RequestProxy(httpClient ,jsonDeserializer, createPushPollDataBuilder, editPushPollDataBuilder);
+        var workflowyClient = new org.phdezann.cn.wf.core.WorkflowyClient(config, requestProxy);
         var eventCreator = new EventCreator(appArgs, googleCalendarClient, channelCache, eventStatusEnumConverter,
-                eventConverter, eventFormatter, workflowyUpdater, linkParser, bulletCache, descriptionUpdater,
+                eventConverter, eventFormatter, workflowyClient, linkParser, bulletCache, descriptionUpdater,
                 jsonDeserializer);
         var terminationLock = new TerminationLock();
         var mqttSubscriber = new MqttSubscriber(terminationLock, jsonDeserializer, config, eventCreator);
-        var nodeForker = new NodeServerForker(config, terminationLock);
 
         if (appArgs.isInitTokens()) {
             googleClient.renewTokens();
@@ -66,7 +72,6 @@ public class Application {
         }
 
         pushNotificationRenewer.startScheduler();
-        nodeForker.startNodeServer();
         mqttSubscriber.startReadingMessagesAsync();
         eventCreator.createEventsOnStartup();
         eventCreator.setupEventsEveryDay();
@@ -74,7 +79,6 @@ public class Application {
         terminationLock.waitForAbnormalTermination();
 
         pushNotificationRenewer.shutdown();
-        nodeForker.shutdown();
         mqttSubscriber.shutdown();
 
         System.exit(1);

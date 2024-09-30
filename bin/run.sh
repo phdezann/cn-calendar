@@ -7,8 +7,6 @@ current_directory="$(
   pwd -P
 )/.."
 
-npm --prefix "${current_directory}/src/main/resources/js/workflowy-cli-js" install
-
 find_jar() {
   find "${current_directory}/target" -type f -name "*.jar" ! -name "original*" -maxdepth 1 -print0 | while read -r -d $'\0' filename; do
     echo "${filename}"
@@ -22,7 +20,6 @@ if [[ -z ${jar} || $(find "${jar}" -mmin +1 -print) ]]; then
 fi
 
 jar=$(find_jar)
-
 java -jar "${jar}" \
   --config-file "${CONFIG_FILE}" \
   --credentials-json-file "${CREDENTIALS_JSON_FILE}" \
