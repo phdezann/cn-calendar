@@ -2,7 +2,7 @@ package org.phdezann.cn.core;
 
 public class WorkflowyFormatter {
 
-    enum COLOR {
+    public enum COLOR {
         GRAY,
         SKY
     }

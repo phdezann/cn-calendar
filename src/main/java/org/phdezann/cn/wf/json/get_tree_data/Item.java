@@ -13,6 +13,7 @@ import lombok.Setter;
 public class Item {
     private String id;
     private String nm;
+    private String no;
     private long ct;
     private long lm;
     private String prnt;

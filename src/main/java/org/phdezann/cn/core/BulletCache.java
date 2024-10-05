@@ -27,6 +27,7 @@ public class BulletCache {
     @Setter
     @ToString
     public static class CacheValue {
+        private String eventId;
         private String bulletId;
         private String bulletTitle;
         private String bulletNote;
@@ -46,12 +47,12 @@ public class BulletCache {
         this.cacheContent = readOnDisk();
     }
 
-    public Optional<BulletCache.CacheValue> get(String bulletId) {
-        return Optional.ofNullable(cacheContent.entries.get(bulletId));
+    public Optional<BulletCache.CacheValue> get(String eventId) {
+        return Optional.ofNullable(cacheContent.entries.get(eventId));
     }
 
     public void set(CacheValue cacheValue) {
-        cacheContent.getEntries().put(cacheValue.getBulletId(), cacheValue);
+        cacheContent.getEntries().put(cacheValue.getEventId(), cacheValue);
         persist();
     }
 
@@ -73,6 +74,6 @@ public class BulletCache {
     private File getCacheFile() {
         var cacheDir = appArgs.getCacheDirectory();
         FileUtils.forceMkdir(cacheDir);
-        return new File(cacheDir, "bullets.json");
+        return new File(cacheDir, "events.json");
     }
 }

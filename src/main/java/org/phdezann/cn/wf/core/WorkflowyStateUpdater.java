@@ -2,6 +2,7 @@ package org.phdezann.cn.wf.core;
 
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.phdezann.cn.wf.json.get_tree_data.Item;
 
 public class WorkflowyStateUpdater {
@@ -37,10 +38,10 @@ public class WorkflowyStateUpdater {
                 .getId();
     }
 
-    public Optional<Item> findNode(String nodeShortId) {
+    public Optional<Item> findNodeByNoteFragment(String noteFragment) {
         return workflowyState.getLocalTreeData().getItems() //
                 .stream() //
-                .filter(item -> item.getId().endsWith(nodeShortId)) //
+                .filter(item -> StringUtils.contains(item.getNo(), noteFragment)) //
                 .findFirst();
     }
 

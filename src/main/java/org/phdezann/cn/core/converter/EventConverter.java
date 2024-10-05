@@ -2,8 +2,6 @@ package org.phdezann.cn.core.converter;
 
 import static org.phdezann.cn.core.DateTimeConverter.toZonedDateTime;
 
-import java.util.Optional;
-
 import org.phdezann.cn.core.model.Event;
 import org.phdezann.cn.core.model.EventDateOrTime;
 

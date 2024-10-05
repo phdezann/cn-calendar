@@ -12,9 +12,10 @@ import org.phdezann.cn.wf.core.RequestProxy.EditNodePushAndPollArgs;
 import org.phdezann.cn.wf.json.push_and_poll.response.Root;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class WorkflowyClient {
 
     private final RequestProxy requestProxy;
@@ -30,7 +31,7 @@ public class WorkflowyClient {
         open(config.get(ConfigKey.WORKFLOWY_SHARE_SECRET_LINK));
     }
 
-    public void open(String shareSecretLink) {
+    private void open(String shareSecretLink) {
         var response = requestProxy.sendShareSecretLink(shareSecretLink);
         sessionId = response.getSessionId();
         shareId = response.getShareId();
@@ -45,21 +46,38 @@ public class WorkflowyClient {
         shareNodeRootId = workflowyStateUpdater.getNodeRootId();
     }
 
-    @RequiredArgsConstructor
     @Getter
     @ToString
     public static class Result {
         private final String nodeShortId;
-    }
 
-    public Result createNode(String title, String note) {
-        return createNode(title, note, true);
-    }
-
-    public Result createNode(String title, String note, boolean updateState) {
-        if (updateState) {
-            workflowyStateUpdater.updateState();
+        public Result(String nodeId) {
+            this.nodeShortId = extractLastPartOfUUID(nodeId);
         }
+
+        private String extractLastPartOfUUID(String bulletId) {
+            if (!StringUtils.contains(bulletId, "-")) {
+                return bulletId;
+            }
+            return substringAfterLast(bulletId, "-");
+        }
+    }
+
+    public Result createOrEditNode(String noteFragment, String title, String note) {
+        workflowyStateUpdater.updateState();
+        var nodeOpt = workflowyStateUpdater.findNodeByNoteFragment(noteFragment);
+        if (nodeOpt.isEmpty()) {
+            return createNode(title, note);
+        }
+        var node = nodeOpt.orElseThrow();
+        if (StringUtils.equals(node.getNm(), title) && StringUtils.equals(node.getNo(), note)) {
+            log.debug("No modification detected for node#{}", node.getId());
+            return new Result(node.getId());
+        }
+        return editNode(node.getId(), title, note);
+    }
+
+    private Result createNode(String title, String note) {
         var newNodeId = generateRandomNodeId();
         var args = CreateNodePushAndPollArgs.builder() //
                 .transactionId(workflowyStateUpdater.getMostRecentOperationTransactionId()) //
@@ -75,19 +93,14 @@ public class WorkflowyClient {
         if (hasErrors(result)) {
             throw new RuntimeException();
         }
-        return new Result(extractLastPartOfUUID(newNodeId));
+        return new Result(newNodeId);
     }
 
-    public Result editNode(String nodeShortId, String title, String note) {
-        workflowyStateUpdater.updateState();
-        var nodeOpt = workflowyStateUpdater.findNode(nodeShortId);
-        if (nodeOpt.isEmpty()) {
-            return createNode(title, note, false);
-        }
+    private Result editNode(String nodeId, String title, String note) {
         var args = EditNodePushAndPollArgs.builder() //
                 .transactionId(workflowyStateUpdater.getMostRecentOperationTransactionId()) //
                 .dateJoinedTimestampInSeconds(dateJoinedTimestampInSeconds) //
-                .nodeId(nodeOpt.orElseThrow().getId()) //
+                .nodeId(nodeId) //
                 .shareId(shareId) //
                 .sessionId(sessionId) //
                 .title(title) //
@@ -97,7 +110,7 @@ public class WorkflowyClient {
         if (hasErrors(result)) {
             throw new RuntimeException();
         }
-        return new Result(extractLastPartOfUUID(nodeShortId));
+        return new Result(nodeId);
     }
 
     private static String generateRandomNodeId() {
@@ -108,13 +121,6 @@ public class WorkflowyClient {
         return result.getResults() //
                 .stream() //
                 .anyMatch(org.phdezann.cn.wf.json.push_and_poll.response.Result::isErrorEncounteredInRemoteOperations);
-    }
-
-    private String extractLastPartOfUUID(String bulletId) {
-        if (!StringUtils.contains(bulletId, "-")) {
-            return bulletId;
-        }
-        return substringAfterLast(bulletId, "-");
     }
 
 }

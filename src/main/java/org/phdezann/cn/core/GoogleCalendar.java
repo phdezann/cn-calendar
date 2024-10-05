@@ -92,16 +92,6 @@ public class GoogleCalendar {
         }
     }
 
-    public void updateDescription(String calendarId, String eventId, String description) {
-        try {
-            var event = calendar.events().get(calendarId, eventId).execute();
-            event.setDescription(description);
-            calendar.events().update(calendarId, event.getId(), event).execute();
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
     private Calendar getService() {
         var credentials = googleClient.getCredentials();
 
