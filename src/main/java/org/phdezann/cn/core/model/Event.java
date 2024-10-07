@@ -16,7 +16,7 @@ public class Event {
     private final Optional<String> summary;
     private final Optional<String> description;
     private final String htmlLink;
-    private final ZonedDateTime created;
+    private final Optional<ZonedDateTime> created;
     private final ZonedDateTime updated;
     private final EventDateOrTime start;
     private final EventDateOrTime end;

@@ -1,5 +1,6 @@
 package org.phdezann.cn.core.converter;
 
+import static java.util.Optional.ofNullable;
 import static org.phdezann.cn.core.DateTimeConverter.toZonedDateTime;
 
 import org.phdezann.cn.core.model.Event;
@@ -15,11 +16,11 @@ public class EventConverter {
 
     public Event convert(com.google.api.services.calendar.model.Event src) {
         var status = eventStatusConverter.convert(src.getStatus());
-        var summary = Optional.ofNullable(src.getSummary());
-        var description = Optional.ofNullable(src.getDescription());
+        var summary = ofNullable(src.getSummary());
+        var description = ofNullable(src.getDescription());
         var start = eventDateTimeConverter.convert(src.getStart());
         var end = fixEndDate(eventDateTimeConverter.convert(src.getEnd()));
-        var created = toZonedDateTime(src.getCreated());
+        var created = ofNullable(src.getCreated()).map(value -> toZonedDateTime(src.getCreated()));
         var updated = toZonedDateTime(src.getUpdated());
         return Event.builder() //
                 .id(src.getId()) //
