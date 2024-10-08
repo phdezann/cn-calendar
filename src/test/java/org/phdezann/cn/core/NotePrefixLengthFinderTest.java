@@ -14,6 +14,11 @@ class NotePrefixLengthFinderTest {
     }
 
     @Test
+    void findPrefixLength_accent() {
+        assertThat(NotePrefixLengthFinder.findPrefixLength(Optional.of("àbc"))).isEqualTo(0);
+    }
+
+    @Test
     void findPrefixLength_noEmoji() {
         assertThat(NotePrefixLengthFinder.findPrefixLength(Optional.of("abc"))).isEqualTo(0);
     }
