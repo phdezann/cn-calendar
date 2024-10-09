@@ -45,9 +45,9 @@ public class EventCreator {
         log.trace("Got notification for channelId#{}", channelId);
         channelCache.getAllValues() //
                 .stream() //
-                .filter(cacheValue -> cacheValue.getChannelId().equals(channelId)) //
+                .filter(cacheValue -> cacheValue.channelId().equals(channelId)) //
                 .findAny() //
-                .ifPresent(cacheValue -> createEvents(cacheValue.getCalendarId()));
+                .ifPresent(cacheValue -> createEvents(cacheValue.calendarId()));
     }
 
     public synchronized void createEventsOnStartup() {
@@ -108,23 +108,23 @@ public class EventCreator {
     private String createOrUpdateBullet(Event event, WorkflowyBullet workflowyBullet) {
         var cachedValue = bulletCache.get(event.getId());
         if (!hasChanged(workflowyBullet, cachedValue)) {
-            return cachedValue.orElseThrow().getBulletId();
+            return cachedValue.orElseThrow().bulletId();
         }
         var bulletId = workflowyClient //
-                .createOrEditNode(event.getHtmlLink(), workflowyBullet.getTitle(), workflowyBullet.getNote()) //
-                .getNodeShortId();
+                .createOrEditNode(event.getHtmlLink(), workflowyBullet.title(), workflowyBullet.note()) //
+                .nodeShortId();
         updateCache(event.getId(), bulletId, workflowyBullet);
         return bulletId;
     }
 
     private boolean hasChanged(WorkflowyBullet workflowyBullet, Optional<CacheValue> cachedValue) {
         return cachedValue.stream() //
-                .noneMatch(elt -> StringUtils.equals(elt.getBulletTitle(), workflowyBullet.getTitle()) //
-                        && StringUtils.equals(elt.getBulletNote(), workflowyBullet.getNote()));
+                .noneMatch(elt -> StringUtils.equals(elt.bulletTitle(), workflowyBullet.title()) //
+                        && StringUtils.equals(elt.bulletNote(), workflowyBullet.note()));
     }
 
     private void updateCache(String eventId, String bulletId, WorkflowyBullet workflowyBullet) {
-        bulletCache.set(new CacheValue(eventId, bulletId, workflowyBullet.getTitle(), workflowyBullet.getNote()));
+        bulletCache.set(new CacheValue(eventId, bulletId, workflowyBullet.title(), workflowyBullet.note()));
     }
 
     public void setupEventsEveryDay() {

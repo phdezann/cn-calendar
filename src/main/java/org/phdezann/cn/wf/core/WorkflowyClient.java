@@ -11,8 +11,6 @@ import org.phdezann.cn.wf.core.RequestProxy.CreateNodePushAndPollArgs;
 import org.phdezann.cn.wf.core.RequestProxy.EditNodePushAndPollArgs;
 import org.phdezann.cn.wf.json.push_and_poll.response.Root;
 
-import lombok.Getter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -33,26 +31,22 @@ public class WorkflowyClient {
 
     private void open(String shareSecretLink) {
         var response = requestProxy.sendShareSecretLink(shareSecretLink);
-        sessionId = response.getSessionId();
-        shareId = response.getShareId();
+        sessionId = response.sessionId();
+        shareId = response.shareId();
         var initializationData = requestProxy.sendGetInitializationData(sessionId, shareId);
-        dateJoinedTimestampInSeconds = initializationData //
-                .getProjectTreeData() //
-                .getAuxiliaryProjectTreeInfos() //
-                .iterator() //
-                .next() //
-                .getDateJoinedTimestampInSeconds();
+        dateJoinedTimestampInSeconds = //
+                initializationData //
+                        .getProjectTreeData() //
+                        .getAuxiliaryProjectTreeInfos() //
+                        .getFirst() //
+                        .getDateJoinedTimestampInSeconds();
         workflowyStateUpdater = new WorkflowyStateUpdater(requestProxy, shareId, sessionId);
         shareNodeRootId = workflowyStateUpdater.getNodeRootId();
     }
 
-    @Getter
-    @ToString
-    public static class Result {
-        private final String nodeShortId;
-
-        public Result(String nodeId) {
-            this.nodeShortId = extractLastPartOfUUID(nodeId);
+    public record Result(String nodeShortId) {
+        public Result {
+            nodeShortId = extractLastPartOfUUID(nodeShortId);
         }
 
         private String extractLastPartOfUUID(String bulletId) {

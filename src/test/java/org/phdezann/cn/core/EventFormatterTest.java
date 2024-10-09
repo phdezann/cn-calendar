@@ -29,12 +29,12 @@ class EventFormatterTest {
 
         var bullet = eventFormatter.formatConfirmed(event);
 
-        assertThat(bullet.getTitle()) //
+        assertThat(bullet.title()) //
                 .startsWith("" //
                         + colored("RDV chez Dr Valentin Chiruc", COLOR.GRAY) //
                         + " | " //
                         + colored("15 avril 2024 au 17 avril 2024", COLOR.SKY));
-        assertThat(bullet.getNote()) //
+        assertThat(bullet.note()) //
                 .isEqualTo("" //
                         + colored("13:10", COLOR.SKY) //
                         + " | " //
@@ -50,12 +50,12 @@ class EventFormatterTest {
 
         var bullet = eventFormatter.formatConfirmed(event);
 
-        assertThat(bullet.getTitle()) //
+        assertThat(bullet.title()) //
                 .startsWith("" //
                         + colored("RDV chez Dr Valentin Chiruc", COLOR.GRAY) //
                         + " | " //
                         + colored("15 avril 2024 au 17 avril 2024", COLOR.SKY));
-        assertThat(bullet.getNote()) //
+        assertThat(bullet.note()) //
                 .isEqualTo("" //
                         + toHref("https://www.google.com/calendar/event?eid=Mzlk", "Lien"));
     }
@@ -69,12 +69,12 @@ class EventFormatterTest {
 
         var bullet = eventFormatter.formatConfirmed(event);
 
-        assertThat(bullet.getTitle()) //
+        assertThat(bullet.title()) //
                 .startsWith("" //
                         + colored("RDV chez Dr Valentin Chiruc", COLOR.GRAY) //
                         + " | " //
                         + colored("15 avril 2024", COLOR.SKY));
-        assertThat(bullet.getNote()) //
+        assertThat(bullet.note()) //
                 .isEqualTo("" //
                         + colored("13:10", COLOR.SKY) //
                         + " | " //
@@ -90,12 +90,12 @@ class EventFormatterTest {
 
         var bullet = eventFormatter.formatConfirmed(event);
 
-        assertThat(bullet.getTitle()) //
+        assertThat(bullet.title()) //
                 .startsWith("" //
                         + colored("RDV chez Dr Valentin Chiruc", COLOR.GRAY) //
                         + " | " //
                         + colored("15 avril 2024", COLOR.SKY));
-        assertThat(bullet.getNote()) //
+        assertThat(bullet.note()) //
                 .isEqualTo("" //
                         + toHref("https://www.google.com/calendar/event?eid=Mzlk", "Lien"));
     }
@@ -109,12 +109,12 @@ class EventFormatterTest {
 
         var bullet = eventFormatter.formatConfirmed(event);
 
-        assertThat(bullet.getTitle()) //
+        assertThat(bullet.title()) //
                 .startsWith("" //
                         + colored("(vide)", COLOR.GRAY) //
                         + " | " //
                         + colored("15 avril 2024", COLOR.SKY));
-        assertThat(bullet.getNote()) //
+        assertThat(bullet.note()) //
                 .isEqualTo("" //
                         + toHref("https://www.google.com/calendar/event?eid=Mzlk", "Lien"));
     }
@@ -128,7 +128,7 @@ class EventFormatterTest {
 
         var bullet = eventFormatter.formatConfirmed(event);
 
-        assertThat(bullet.getTitle()) //
+        assertThat(bullet.title()) //
                 .startsWith("" //
                             + colored("My event &amp;", COLOR.GRAY) //
                             + " | " //
@@ -144,7 +144,7 @@ class EventFormatterTest {
 
         var bullet = eventFormatter.formatConfirmed(event);
 
-        assertThat(bullet.getTitle()) //
+        assertThat(bullet.title()) //
                 .startsWith("" //
                             + colored("My event", COLOR.GRAY) //
                             + " | " //

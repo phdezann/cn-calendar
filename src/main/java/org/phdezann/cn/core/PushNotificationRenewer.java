@@ -44,7 +44,7 @@ public class PushNotificationRenewer {
     public void clearAll() {
         channelLog.getAllValues() //
                 .forEach(c -> googleCalendar //
-                        .stopWatchIgnoreNotFoundError(c.getChannelId(), c.getResourceId()));
+                        .stopWatchIgnoreNotFoundError(c.channelId(), c.resourceId()));
         channelCache.clear();
     }
 
@@ -67,7 +67,7 @@ public class PushNotificationRenewer {
         var channelOpt = channelCache //
                 .getAllValues() //
                 .stream() //
-                .filter(value -> StringUtils.equals(value.getCalendarId(), calendarId)) //
+                .filter(value -> StringUtils.equals(value.calendarId(), calendarId)) //
                 .findAny();
 
         if (channelOpt.isEmpty()) {
@@ -75,13 +75,13 @@ public class PushNotificationRenewer {
         } else {
             var channel = channelOpt.get();
             var now = ZonedDateTime.now(ZoneId.of("Europe/Paris"));
-            var expiration = channel.getExpiration();
+            var expiration = channel.expiration();
             var diffInMinutes = ChronoUnit.MINUTES.between(now, expiration);
             log.info("Diff in minutes between '{}' and '{}': {}", now, expiration, diffInMinutes);
             if (diffInMinutes < MINS_BEFORE_RENEWAL) {
                 log.info("Channel for calendar#{} is about to expire, renewing it before expiration on {}", calendarId,
                         expiration.toString());
-                googleCalendar.stopWatchIgnoreNotFoundError(channel.getChannelId(), channel.getResourceId());
+                googleCalendar.stopWatchIgnoreNotFoundError(channel.channelId(), channel.resourceId());
                 startWatch(calendarId);
             }
         }
@@ -89,13 +89,22 @@ public class PushNotificationRenewer {
 
     private void startWatch(String calendarId) {
         log.debug("Calling watch for calendar#{}", calendarId);
-        var expiration = ZonedDateTime.now().plusMinutes(CHANNEL_DURATION_IN_MINS);
+        var expirationArg = ZonedDateTime.now().plusMinutes(CHANNEL_DURATION_IN_MINS);
         var token = config.get(ConfigKey.CALENDAR_WEBHOOK_TOKEN);
-        var response = googleCalendar.watch(calendarId, expiration, token);
+        var response = googleCalendar.watch(calendarId, expirationArg, token);
         log.info("Got watch response for calendar#{} with channelID:{}, expiration:{}", //
-                calendarId, response.getChannelId(), response.getExpiration());
-        channelCache.set(new ChannelCache.CacheValue(calendarId, response));
-        channelLog.set(new ChannelLog.CacheValue(calendarId, response));
+                calendarId, response.channelId(), response.expiration());
+        var resourceId = response.resourceId();
+        var channelId = response.channelId();
+        var expiration = response.expiration();
+        channelCache.set(new ChannelCache.CacheValue(calendarId, //
+                resourceId, //
+                channelId, //
+                expiration));
+        channelLog.set(new ChannelLog.CacheValue(calendarId, //
+                resourceId, //
+                channelId, //
+                expiration));
     }
 
     public void shutdown() {

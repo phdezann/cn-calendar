@@ -7,12 +7,9 @@ import java.util.Optional;
 
 import org.phdezann.cn.support.FileUtils;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 @RequiredArgsConstructor
 public class BulletCache {
@@ -21,24 +18,13 @@ public class BulletCache {
     private final JsonSerializer jsonSerializer;
     private final CacheContent cacheContent;
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
-    @Setter
-    @ToString
-    public static class CacheValue {
-        private String eventId;
-        private String bulletId;
-        private String bulletTitle;
-        private String bulletNote;
+    public record CacheValue(String eventId, String bulletId, String bulletTitle, String bulletNote) {
     }
 
     @NoArgsConstructor
     @Getter
-    @Setter
-    @ToString
     public static class CacheContent {
-        private Map<String, CacheValue> entries = new HashMap<>();
+        private final Map<String, CacheValue> entries = new HashMap<>();
     }
 
     public BulletCache(AppArgs appArgs, JsonSerializer jsonSerializer) {
@@ -52,7 +38,7 @@ public class BulletCache {
     }
 
     public void set(CacheValue cacheValue) {
-        cacheContent.getEntries().put(cacheValue.getEventId(), cacheValue);
+        cacheContent.getEntries().put(cacheValue.eventId(), cacheValue);
         persist();
     }
 

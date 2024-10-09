@@ -10,8 +10,6 @@ import org.phdezann.cn.support.FileUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 @RequiredArgsConstructor
 public class SyncTokenCache {
@@ -22,11 +20,10 @@ public class SyncTokenCache {
 
     @NoArgsConstructor
     @Getter
-    @Setter
-    @ToString
     public static class CacheContent {
-        private Map<String, String> entries = new HashMap<>();
+        private final Map<String, String> entries = new HashMap<>();
     }
+
 
     public SyncTokenCache(AppArgs appArgs, JsonSerializer jsonSerializer) {
         this.appArgs = appArgs;

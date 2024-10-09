@@ -20,9 +20,7 @@ import org.phdezann.cn.wf.core.request.EditPushPollOperationBuilder;
 import org.phdezann.cn.wf.core.request.EditPushPollOperationBuilder.EditPushPollOperationArgs;
 
 import lombok.Builder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 @RequiredArgsConstructor
 public class RequestProxy {
@@ -32,18 +30,13 @@ public class RequestProxy {
     private final CreatePushPollOperationBuilder createPushPollOperationBuilder;
     private final EditPushPollOperationBuilder editPushPollOperationBuilder;
 
-    @RequiredArgsConstructor
-    @Getter
-    @ToString
-    public static class CreateNodeResult {
-        private final String sessionId;
-        private final String shareId;
+    public record CreateNodeResult(String sessionId, String shareId) {
     }
 
     public CreateNodeResult sendShareSecretLink(String shareSecretLink) {
         var response = httpClient.sendShareSecretLink(shareSecretLink);
-        var sessionId = extractSessionId(response.getCookies());
-        var shareId = findShareId(response.getHtml());
+        var sessionId = extractSessionId(response.cookies());
+        var shareId = findShareId(response.html());
         return new CreateNodeResult(sessionId, shareId);
     }
 
@@ -58,56 +51,44 @@ public class RequestProxy {
         return jsonSerializer.readValue(json, org.phdezann.cn.wf.json.get_tree_data.Root.class);
     }
 
-    @RequiredArgsConstructor
     @Builder
-    @Getter
-    public static class CreateNodePushAndPollArgs {
-        @lombok.NonNull
-        private final String transactionId;
-        @lombok.NonNull
-        private final Long dateJoinedTimestampInSeconds;
-        @lombok.NonNull
-        private final String rootId;
-        @lombok.NonNull
-        private final String shareId;
-        @lombok.NonNull
-        private final String sessionId;
-        @lombok.NonNull
-        private final String newNodeId;
-        @lombok.NonNull
-        private final String title;
-        @lombok.NonNull
-        private final String note;
+    public record CreateNodePushAndPollArgs(String transactionId, //
+                                            Long dateJoinedTimestampInSeconds, //
+                                            String rootId, //
+                                            String shareId, //
+                                            String sessionId, //
+                                            String newNodeId, //
+                                            String title, String note) {
     }
 
     public org.phdezann.cn.wf.json.push_and_poll.response.Root //
             sendCreateNodePushAndPoll(CreateNodePushAndPollArgs args) {
-        var clientTimestamp = createClientTimestamp(args.getDateJoinedTimestampInSeconds());
+        var clientTimestamp = createClientTimestamp(args.dateJoinedTimestampInSeconds());
         var createPushPollOperationArgs = CreatePushPollOperationArgs.builder() //
-                .nodeId(args.getNewNodeId()) //
-                .parentNodeId(args.getRootId()) //
-                .shareId(args.getShareId()) //
-                .transactionId(args.getTransactionId()) //
+                .nodeId(args.newNodeId()) //
+                .parentNodeId(args.rootId()) //
+                .shareId(args.shareId()) //
+                .transactionId(args.transactionId()) //
                 .clientTimeStamp(clientTimestamp) //
                 .build();
         var editPushPollOperationArgs = EditPushPollOperationArgs.builder() //
-                .nodeId(args.getNewNodeId()) //
-                .shareId(args.getShareId()) //
-                .transactionId(args.getTransactionId()) //
+                .nodeId(args.newNodeId()) //
+                .shareId(args.shareId()) //
+                .transactionId(args.transactionId()) //
                 .clientTimeStamp(clientTimestamp) //
-                .title(args.getTitle()) //
-                .note(args.getNote()) //
+                .title(args.title()) //
+                .note(args.note()) //
                 .build();
         var createOperation = createPushPollOperationBuilder.build(createPushPollOperationArgs);
         var editOperation = editPushPollOperationBuilder.build(editPushPollOperationArgs);
         var root = new org.phdezann.cn.wf.json.push_and_poll.request.create.Root();
-        root.setMostRecentOperationTransactionId(args.getTransactionId());
-        root.setShareId(args.getShareId());
+        root.setMostRecentOperationTransactionId(args.transactionId());
+        root.setShareId(args.shareId());
         root.setOperations(List.of(createOperation, editOperation));
         var pushPollData = jsonSerializer.writeValue(List.of(root));
         var pushAndPollArgs = PushAndPollArgs.builder() //
-                .sessionId(args.getSessionId()) //
-                .shareId(args.getShareId()) //
+                .sessionId(args.sessionId()) //
+                .shareId(args.shareId()) //
                 .pushPollData(pushPollData) //
                 .clientId(generateUniqueClientId()) //
                 .uti(generateUniqueUti()) //
@@ -117,46 +98,36 @@ public class RequestProxy {
         return jsonSerializer.readValue(json, org.phdezann.cn.wf.json.push_and_poll.response.Root.class);
     }
 
-    @RequiredArgsConstructor
     @Builder
-    @Getter
-    public static class EditNodePushAndPollArgs {
-        @lombok.NonNull
-        private final String transactionId;
-        @lombok.NonNull
-        private final Long dateJoinedTimestampInSeconds;
-        @lombok.NonNull
-        private final String nodeId;
-        @lombok.NonNull
-        private final String shareId;
-        @lombok.NonNull
-        private final String sessionId;
-        @lombok.NonNull
-        private final String title;
-        @lombok.NonNull
-        private final String note;
+    public record EditNodePushAndPollArgs(String transactionId, //
+                                          Long dateJoinedTimestampInSeconds, //
+                                          String nodeId, //
+                                          String shareId, //
+                                          String sessionId, //
+                                          String title, //
+                                          String note) {
     }
 
     public org.phdezann.cn.wf.json.push_and_poll.response.Root //
             sendEditNodePushAndPoll(EditNodePushAndPollArgs args) {
-        var clientTimestamp = createClientTimestamp(args.getDateJoinedTimestampInSeconds());
+        var clientTimestamp = createClientTimestamp(args.dateJoinedTimestampInSeconds());
         var editPushPollOperationArgs = EditPushPollOperationArgs.builder() //
-                .nodeId(args.getNodeId()) //
-                .shareId(args.getShareId()) //
-                .transactionId(args.getTransactionId()) //
+                .nodeId(args.nodeId()) //
+                .shareId(args.shareId()) //
+                .transactionId(args.transactionId()) //
                 .clientTimeStamp(clientTimestamp) //
-                .title(args.getTitle()) //
-                .note(args.getNote()) //
+                .title(args.title()) //
+                .note(args.note()) //
                 .build();
         var editOperation = editPushPollOperationBuilder.build(editPushPollOperationArgs);
         var root = new org.phdezann.cn.wf.json.push_and_poll.request.edit.Root();
-        root.setMostRecentOperationTransactionId(args.getTransactionId());
-        root.setShareId(args.getShareId());
+        root.setMostRecentOperationTransactionId(args.transactionId());
+        root.setShareId(args.shareId());
         root.setOperations(List.of(editOperation));
         var pushPollData = jsonSerializer.writeValue(List.of(root));
         var pushAndPollArgs = PushAndPollArgs.builder() //
-                .sessionId(args.getSessionId()) //
-                .shareId(args.getShareId()) //
+                .sessionId(args.sessionId()) //
+                .shareId(args.shareId()) //
                 .pushPollData(pushPollData) //
                 .clientId(generateUniqueClientId()) //
                 .uti(generateUniqueUti()) //

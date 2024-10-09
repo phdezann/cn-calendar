@@ -8,15 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.phdezann.cn.core.GoogleCalendar.WatchResponse;
 import org.phdezann.cn.support.FileUtils;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 @RequiredArgsConstructor
 public class ChannelCache {
@@ -25,31 +21,13 @@ public class ChannelCache {
     private final JsonSerializer jsonSerializer;
     private final CacheContent cacheContent;
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
-    @Setter
-    @ToString
-    public static class CacheValue {
-        private String calendarId;
-        private String resourceId;
-        private String channelId;
-        private ZonedDateTime expiration;
-
-        public CacheValue(String calendarId, WatchResponse watchResponse) {
-            this.calendarId = calendarId;
-            this.resourceId = watchResponse.getResourceId();
-            this.channelId = watchResponse.getChannelId();
-            this.expiration = watchResponse.getExpiration();
-        }
+    public record CacheValue(String calendarId, String resourceId, String channelId, ZonedDateTime expiration) {
     }
 
     @NoArgsConstructor
     @Getter
-    @Setter
-    @ToString
     public static class CacheContent {
-        private Map<String, CacheValue> entries = new HashMap<>();
+        private final Map<String, CacheValue> entries = new HashMap<>();
     }
 
     public ChannelCache(AppArgs appArgs, JsonSerializer jsonSerializer) {
@@ -65,7 +43,7 @@ public class ChannelCache {
     }
 
     public void set(CacheValue cacheValue) {
-        var key = DigestUtils.md5Hex(cacheValue.getCalendarId());
+        var key = DigestUtils.md5Hex(cacheValue.calendarId());
         cacheContent.getEntries().put(key, cacheValue);
         persist();
     }

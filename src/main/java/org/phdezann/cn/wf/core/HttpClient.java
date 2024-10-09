@@ -17,7 +17,6 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.StringBody;
 
 import lombok.Builder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,11 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HttpClient {
 
-    @RequiredArgsConstructor
-    @Getter
-    public static class Result {
-        private final String html;
-        private final List<String> cookies;
+    public record Result(String html, List<String> cookies) {
     }
 
     public Result sendShareSecretLink(String shareSecretLink) {
@@ -67,31 +62,28 @@ public class HttpClient {
         return sendShareSecretLink(request).body();
     }
 
-    @RequiredArgsConstructor
     @Builder
-    @Getter
-    public static class PushAndPollArgs {
-        private final String sessionId;
-        private final String shareId;
-        private final String pushPollData;
-        private final String clientId;
-        private final String uti;
-        private final String pushPollId;
+    public record PushAndPollArgs(String sessionId, //
+            String shareId, //
+            String pushPollData, //
+            String clientId, //
+            String uti, //
+            String pushPollId) {
     }
 
     public String sendPushAndPoll(PushAndPollArgs args) {
-        var url = String.format("https://workflowy.com/push_and_poll?uti=%s", args.getUti());
+        var url = String.format("https://workflowy.com/push_and_poll?uti=%s", args.uti());
         var httpEntity = MultipartEntityBuilder.create() //
-                .addPart("client_id", toStringBody(args.getClientId())) //
+                .addPart("client_id", toStringBody(args.clientId())) //
                 .addPart("client_version", toStringBody("21")) //
-                .addPart("push_poll_id", toStringBody(args.getPushPollId())) //
-                .addPart("push_poll_data", toStringBody(args.getPushPollData())) //
-                .addPart("share_id", toStringBody(args.getShareId())) //
+                .addPart("push_poll_id", toStringBody(args.pushPollId())) //
+                .addPart("push_poll_data", toStringBody(args.pushPollData())) //
+                .addPart("share_id", toStringBody(args.shareId())) //
                 .addPart("timezone", toStringBody("Europe/Paris")) //
                 .build();
         var request = HttpRequest.newBuilder() //
                 .uri(toUri(url)) //
-                .header("cookie", toSessionValue(args.getSessionId())) //
+                .header("cookie", toSessionValue(args.sessionId())) //
                 .header("content-type", httpEntity.getContentType().getValue())
                 .POST(BodyPublishers.ofInputStream(() -> toInputStream(httpEntity))) //
                 .build();
@@ -124,13 +116,13 @@ public class HttpClient {
     }
 
     private HttpResponse<String> sendShareSecretLink(HttpRequest request) {
-        try {
+        try (var httpClient = java.net.http.HttpClient.newHttpClient()) {
             var bodyHandler = BodyHandlers.ofString(StandardCharsets.UTF_8);
-            return java.net.http.HttpClient //
-                    .newHttpClient() //
-                    .send(request, bodyHandler);
-        } catch (IOException | InterruptedException ex) {
-            throw new RuntimeException(ex);
+            try {
+                return httpClient.send(request, bodyHandler);
+            } catch (IOException | InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 

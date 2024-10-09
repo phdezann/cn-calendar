@@ -16,7 +16,6 @@ import org.phdezann.cn.core.WorkflowyFormatter.COLOR;
 import org.phdezann.cn.core.model.Event;
 import org.phdezann.cn.core.model.EventDateOrTime;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -24,12 +23,7 @@ public class EventFormatter {
 
     private final Config config;
 
-    @RequiredArgsConstructor
-    @Getter
-    public static class WorkflowyBullet {
-        private final String title;
-        private final String note;
-
+    public record WorkflowyBullet(String title, String note) {
     }
 
     public WorkflowyBullet formatConfirmed(Event event) {
@@ -40,8 +34,8 @@ public class EventFormatter {
 
     public WorkflowyBullet formatCancelledEvent(Event event) {
         var bullet = formatConfirmed(event);
-        var title = bullet.getTitle();
-        var note = bullet.getNote();
+        var title = bullet.title();
+        var note = bullet.note();
         title = String.format("%s %s", bold(colored("[CANCELLED]", COLOR.GRAY)), title);
         return new WorkflowyBullet(title, note);
     }

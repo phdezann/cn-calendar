@@ -20,9 +20,6 @@ import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Channel;
 import com.google.api.services.calendar.model.Event;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -122,13 +119,7 @@ public class GoogleCalendar {
         }
     }
 
-    @RequiredArgsConstructor
-    @Getter
-    @ToString
-    public static class WatchResponse {
-        private final String channelId;
-        private final String resourceId;
-        private final ZonedDateTime expiration;
+    public record WatchResponse(String channelId, String resourceId, ZonedDateTime expiration) {
     }
 
     private WatchResponse doWatch(String calendarId, ZonedDateTime expiration, String token) throws IOException {
